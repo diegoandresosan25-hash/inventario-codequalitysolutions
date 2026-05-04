@@ -1,0 +1,42 @@
+name: CI - Compilar y Ejecutar Tests
+
+# Se activa en cada push y en cada pull request a la rama main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build y Test con Maven
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descargar el código del repositorio
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      # 2. Configurar Java 17 (LTS)
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Compilar el proyecto
+      - name: Compilar con Maven
+        run: mvn compile --no-transfer-progress
+
+      # 4. Ejecutar todas las pruebas unitarias
+      - name: Ejecutar pruebas unitarias
+        run: mvn test --no-transfer-progress
+
+      # 5. (Opcional) Publicar resultado de tests como artefacto
+      - name: Publicar informe de tests
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
